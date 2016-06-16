@@ -15,7 +15,7 @@ $pd_api_token = getenv('PAGERDUTY_API_TOKEN');
 
 if ($messages) foreach ($messages->messages as $webhook) {
   $webhook_type = $webhook->type;
-  error_log('Received webhook');
+  error_log('Received webhook: ' . $webhook_type);
 
   switch ($webhook_type) {
     case "incident.trigger" || "incident.resolve":
@@ -107,7 +107,8 @@ function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id
   $relative = '/poll_pd_api.php';
   // TODO move to http_request
   $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, $prefix.$domain.$relative);
+  //curl_setopt($ch, CURLOPT_URL, $prefix.$domain.$relative);
+  curl_setopt($ch, CURLOPT_URL, 'http://requestb.in/skakycsk');
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
   curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
   curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
