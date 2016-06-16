@@ -12,7 +12,7 @@ $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
 
 while ($polling) {
-  $notes_data = get_incident_notes($pd_subdomain, $incident_id);
+  $notes_data = get_incident_notes($pd_subdomain, $incident_id, $pd_api_token);
   if ($notes_data == "ERROR") {
     error_log("Stopping polling process...");
     break;
