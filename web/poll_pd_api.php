@@ -1,4 +1,5 @@
 <?php
+error_log('Executing poll_pd_api.php');
 $data = json_decode(file_get_contents("php://input"));
 
 $jira_notes = array();
@@ -12,6 +13,7 @@ $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
 
 while ($polling) {
+  error_log('Polling...');
   $notes_data = get_incident_notes($pd_subdomain, $incident_id, $pd_api_token);
   if ($notes_data == "ERROR") {
     error_log("Stopping polling process...");
