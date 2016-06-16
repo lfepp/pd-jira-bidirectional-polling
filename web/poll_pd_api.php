@@ -32,6 +32,7 @@ while ($polling) {
 
 // Returns all notes from PagerDuty incident
 function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
+  error_log('Running get incident notes...');
   $url = "https://$pd_subdomain.pagerduty.com/api/v1/incidents/$incident_id/notes";
   $return = http_request($url, "", "GET", "token", "", $pd_api_token);
   if ($return['status_code'] == '200') {
@@ -56,6 +57,7 @@ function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
 
 // De-duplicates notes with those already added to Jira
 function dedupe_notes($notes_data, $jira_notes) {
+  error_log('Running dedupe incident notes...');
   $unique_notes = array();
   foreach ($notes_data as $note) {
     if (!in_array($note, $jira_notes)) {
@@ -67,6 +69,7 @@ function dedupe_notes($notes_data, $jira_notes) {
 
 // Posts comments to Jira
 function post_to_jira($data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id) {
+  error_log('Running post to jira...');
   $url = $base_url . $jira_issue_id . "/comment";
   $data_json = json_encode($data);
   $return = http_request($url, $data_json, "POST", "basic", $jira_username, $jira_password);
@@ -81,6 +84,7 @@ function post_to_jira($data, $base_url, $jira_username, $jira_password, $jira_ur
 
 // Make HTTP request to PagerDuty or Jira
 function http_request($url, $data_json, $method, $auth_type, $username, $token) {
+  error_log('Running http request...');
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $url);
   if ($auth_type == "token") {

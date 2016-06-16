@@ -81,6 +81,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
         $data = array('fields'=>array('project'=>array('key'=>"$jira_project"),'summary'=>"$summary",'description'=>"A new PagerDuty ticket as been created.  {$trigger_summary_data}. Please go to $ticket_url to view it.", 'issuetype'=>array('name'=>"$jira_issue_type")));
         post_to_jira($data, $base_url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
         // Call poll_pd_api with polling = true to start polling
+        error_log('Calling poll api trigger');
         call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, true, $jira_username, $pd_api_token);
       }
       elseif ($verb == "resolve") {
@@ -89,6 +90,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
         $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
         post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
         // Call poll_pd_api with polling = false to stop polling
+        error_log('Calling poll api resolve');
         call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, false, $jira_username, $pd_api_token);
       }
 
@@ -107,8 +109,7 @@ function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id
   $relative = '/poll_pd_api.php';
   // TODO move to http_request
   $ch = curl_init();
-  //curl_setopt($ch, CURLOPT_URL, $prefix.$domain.$relative);
-  curl_setopt($ch, CURLOPT_URL, 'http://requestb.in/skakycsk');
+  curl_setopt($ch, CURLOPT_URL, $prefix.$domain.$relative);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
   curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
   curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
