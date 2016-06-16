@@ -12,7 +12,7 @@ $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
 
 while ($polling) {
-  $notes_data = get_user_notes($pd_subdomain, $incident_id);
+  $notes_data = get_incident_notes($pd_subdomain, $incident_id);
   if ($notes_data == "ERROR") {
     error_log("Stopping polling process...");
     break;
@@ -31,7 +31,7 @@ while ($polling) {
 }
 
 // Returns all notes from PagerDuty incident
-function get_user_notes($pd_subdomain, $incident_id) {
+function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
   $url = "https://$pd_subdomain.pagerduty.com/api/v1/incidents/$incident_id/notes";
   $return = http_request($url, "", "GET", "token", "", $pd_api_token);
   if ($return['status_code'] == '200') {
