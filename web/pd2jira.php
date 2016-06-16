@@ -22,6 +22,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
       error_log('Webhook in trigger/resolve');
       //Die if the lock file is in use or if it's a trigger from JIRA
       if(file_exists('lock.txt') && file_get_contents('lock.txt') > (time() - 5)) {
+        error_log('Its dying due to the lock!');
         die('Should not run!');
         error_log("Already running.  Killing duplicate process.");
       }
@@ -46,6 +47,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
 
       //Determine whether it's a trigger or resolve
       $verb = explode(".",$webhook_type)[1];
+      error_log('The verb is: ' . $verb);
 
       if ($verb == "trigger" && ($client == "JIRA" || substr($subject, 0, 6) === "[JIRA]")) die('Do not trigger a new JIRA issue based on an existing JIRA issue.');
       error_log("substr:" . $subject);
@@ -112,6 +114,9 @@ function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id
   $relative = '/poll_pd_api.php';
   // TODO move to http_request
   $ch = curl_init();
+  error_log('prefix: ' . $prefix);
+  error_log('domain: ' . $domain);
+  error_log('relative: ' . $relative);
   curl_setopt($ch, CURLOPT_URL, $prefix.$domain.$relative);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
   curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
