@@ -77,11 +77,11 @@ if ($messages) foreach ($messages->messages as $webhook) {
 
       //Build the data JSON blobs to be sent to JIRA
       if ($verb == "trigger") {
-        // Call poll_pd_api with polling = true to start polling
-        call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, true, $jira_username, $pd_api_token);
         $note_verb = "created";
         $data = array('fields'=>array('project'=>array('key'=>"$jira_project"),'summary'=>"$summary",'description'=>"A new PagerDuty ticket as been created.  {$trigger_summary_data}. Please go to $ticket_url to view it.", 'issuetype'=>array('name'=>"$jira_issue_type")));
         post_to_jira($data, $base_url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
+        // Call poll_pd_api with polling = true to start polling
+        call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, true, $jira_username, $pd_api_token);
       }
       elseif ($verb == "resolve") {
         $note_verb = "closed";
