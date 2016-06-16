@@ -11,6 +11,7 @@ $incident_id = $data->incident_id;
 $base_url = $data->base_url;
 $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
+$jira_password = $data->jira_password;
 
 while ($polling) {
   error_log('Polling...');
@@ -75,11 +76,13 @@ function post_to_jira($data, $base_url, $jira_username, $jira_password, $jira_ur
   $url = $base_url . $jira_issue_id . "/comment";
   $data_json = json_encode($data);
   $return = http_request($url, $data_json, "POST", "basic", $jira_username, $jira_password);
+  error_log('Jira username: ' . $jira_username);
+  error_log('Jira password: ' . $jira_password);
   $status_code = $return['status_code'];
   $response = $return['response'];
 
   if ($status_code != '201' && $status_code != '204') {
-    error_log('Could not add comment to Jira. Status code: ' . $status_code . '. Response: ' . $response);
+    error_log('Could not add comment to Jira. Status code: ' . $status_code);
   }
   return "ERROR";
 }
