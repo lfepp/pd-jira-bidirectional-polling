@@ -53,7 +53,9 @@ if ($messages) foreach ($messages->messages as $webhook) {
       error_log("substr:" . $subject);
       //Let's make sure the note wasn't already added (Prevents a 2nd Jira ticket in the event the first request takes long enough to not succeed according to PagerDuty)
       $url = "https://$pd_subdomain.pagerduty.com/api/v1/incidents/$incident_id/notes";
+      error_log('PD URL: ' . $url);
       $return = http_request($url, "", "GET", "token", "", $pd_api_token);
+      error_log('Request status code: ' . $return['status_code']);
       if ($return['status_code'] == '200') {
         $response = json_decode($return['response'], true);
         if (array_key_exists("notes", $response)) {
