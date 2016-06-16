@@ -77,6 +77,8 @@ if ($messages) foreach ($messages->messages as $webhook) {
 
       //Build the data JSON blobs to be sent to JIRA
       if ($verb == "trigger") {
+        // Call poll_pd_api with polling = true to start polling
+        call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, true, $jira_username, $pd_api_token)
         $note_verb = "created";
         $data = array('fields'=>array('project'=>array('key'=>"$jira_project"),'summary'=>"$summary",'description'=>"A new PagerDuty ticket as been created.  {$trigger_summary_data}. Please go to $ticket_url to view it.", 'issuetype'=>array('name'=>"$jira_issue_type")));
         post_to_jira($data, $base_url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
@@ -86,18 +88,36 @@ if ($messages) foreach ($messages->messages as $webhook) {
         $url = $base_url . $jira_issue_id . "/transitions";
         $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
         post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
-        // When an incident is resolved, add all notes from PagerDuty to the Jira ticket
-        $url = $base_url . $jira_issue_id . "/comment";
-        foreach ($notes_data as $note) {
-          $data = array('body'=>"$note");
-          post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
-        }
+        // Call poll_pd_api with polling = false to stop polling
+        call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, false, $jira_username, $pd_api_token)
       }
 
       break;
     default:
       continue;
   }
+}
+
+function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, $polling, $jira_username, $pd_api_token) {
+  $data = array('polling'=>$polling,'pd_subdomain'=>$pd_subdomain,'incident_id'=>$incident_id,'base_url'=>$base_url,'jira_issue_id'=>$jira_issue_id,'jira_username'=>$jira_username,'pd_api_token'=>$pd_api_token);
+  $data_json = json_encode($data);
+  // Get the current scheme and domain and append the poll_pd_api script
+  $domain = $_SERVER['HTTP_HOST'];
+  $prefix = $_SERVER['HTTPS'] ? 'https://' : 'http://';
+  $relative = '/poll_pd_api.php';
+  // TODO move to http_request
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $prefix.$domain.$relative);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+  $response  = curl_exec($ch);
+  $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  if(curl_errno($ch)){
+    error_log('Curl error: ' . curl_error($ch));
+  }
+  curl_close($ch);
+  return array('status_code'=>"$status_code",'response'=>"$response");
 }
 
 function post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token) {
@@ -120,7 +140,7 @@ function post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain
     //Update the PagerDuty ticket if the JIRA ticket isn't made.
     $data = array('note'=>array('content'=>"There was an issue communicating with JIRA. $response"),'requester_id'=>"$pd_requester_id");
     $data_json = json_encode($data);
-    http_request($url, $data_json, "POST", "token", "", $pd_api_token);
+    $response = http_request($url, $data_json, "POST", "token", "", $pd_api_token);
   }
 }
 
