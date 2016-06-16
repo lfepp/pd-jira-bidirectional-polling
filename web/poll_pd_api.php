@@ -13,10 +13,18 @@ $jira_username = $data->jira_username;
 
 while ($polling) {
   $notes_data = get_user_notes($pd_subdomain, $incident_id);
+  if ($notes_data == "ERROR") {
+    error_log("Stopping polling process...");
+    break;
+  }
   $unique_notes = dedupe_notes($notes_data, $jira_notes);
   foreach ($unique_notes as $note) {
     $jira_note_data = array('body'=>"$note");
-    post_to_jira($jira_note_data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id);
+    $res = post_to_jira($jira_note_data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id);
+    if ($res == "ERROR") {
+      error_log("Stopping polling process...");
+      break;
+    }
     $jira_notes[] = $note;
   }
   usleep(10000000); // Wait 10 seconds
@@ -31,6 +39,7 @@ function get_user_notes($pd_subdomain, $incident_id) {
   }
   else {
     error_log("Error: Failed to pull notes from PagerDuty. Status code: " . $return['status_code']);
+    return "ERROR";
   }
   if (array_key_exists("notes", $response)) {
     $notes_data = array();
@@ -67,6 +76,7 @@ function post_to_jira($data, $base_url, $jira_username, $jira_password, $jira_ur
   if ($status_code != '201' && $status_code != '204') {
     error_log('Could not add comment to Jira. Status code: ' . $status_code . '. Response: ' . $response);
   }
+  return "ERROR";
 }
 
 // Make HTTP request to PagerDuty or Jira
