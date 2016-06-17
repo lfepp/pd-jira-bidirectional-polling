@@ -12,6 +12,7 @@ $base_url = $data->base_url;
 $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
 $jira_password = $data->jira_password;
+$incident_number = $data->incident_number;
 
 while ($polling) {
   error_log('Polling...');
@@ -23,13 +24,23 @@ while ($polling) {
   $unique_notes = dedupe_notes($notes_data, $jira_notes);
   if (count($unique_notes) > 0) {
     foreach ($unique_notes as $note) {
-      $jira_note_data = array('body'=>"$note");
-      $res = post_to_jira($jira_note_data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id);
-      if ($res == "ERROR") {
-        error_log("Stopping polling process...");
+      if ($note['type'] == 'annotate') {
+        $jira_note_data = array('body'=>"$note");
+        $res = post_to_jira($jira_note_data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id);
+        if ($res == "ERROR") {
+          error_log("Stopping polling process...");
+          break;
+        }
+        $jira_notes[] = $note;
+      }
+      elseif ($note['type'] == 'resolve') {
+        error_log('Incident resolved...');
+        $note_verb = "closed";
+        $url = $base_url . $jira_issue_id . "/transitions";
+        $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
+        post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
         break;
       }
-      $jira_notes[] = $note;
     }
   }
   usleep(10000000); // Wait 10 seconds
@@ -37,8 +48,8 @@ while ($polling) {
 
 // Returns all notes from PagerDuty incident
 function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
-  error_log('Running get incident notes...');
-  $url = "https://$pd_subdomain.pagerduty.com/api/v1/incidents/$incident_id/notes";
+  error_log('Running get incident log entries...');
+  $url = "https://$pd_subdomain.pagerduty.com/api/v1/incidents/$incident_id/log_entries";
   $return = http_request($url, "", "GET", "token", "", $pd_api_token);
   if ($return['status_code'] == '200') {
     $response = json_decode($return['response'], true);
@@ -47,17 +58,11 @@ function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
     error_log("Error: Failed to pull notes from PagerDuty. Status code: " . $return['status_code']);
     return "ERROR";
   }
-  if (array_key_exists("notes", $response)) {
-    $notes_data = array();
-    foreach ($response['notes'] as $value) {
-      $startsWith = "JIRA ticket";
-      // If the note was not added by Jira, concat it into notes data
-      if (substr($value['content'], 0, strlen($startsWith)) !== $startsWith) {
-        $notes_data[] = $value['content'];
-      }
-    }
-    return $notes_data;
+  $notes_data = array();
+  foreach ($response['notes'] as $value) {
+    $notes_data[] = $value;
   }
+  return $notes_data;
 }
 
 // De-duplicates notes with those already added to Jira
@@ -65,7 +70,7 @@ function dedupe_notes($notes_data, $jira_notes) {
   error_log('Running dedupe incident notes...');
   $unique_notes = array();
   foreach ($notes_data as $note) {
-    if (!in_array($note, $jira_notes)) {
+    if (!in_array_field($note['id'], 'id', $jira_notes)) {
       $unique_notes[] = $note;
     }
   }

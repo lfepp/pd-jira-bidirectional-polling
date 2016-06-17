@@ -67,6 +67,8 @@ if ($messages) foreach ($messages->messages as $webhook) {
               break 2; //Skip it cause it would be a duplicate
             }
             //Extract the JIRA issue ID for incidents that did not originate in JIRA
+            // TODO remove once we're polling for resolve
+            // TODO remove $polling variable entirely
             elseif (substr($value['content'], 0, strlen($startsWith)) === $startsWith && $verb == "resolve") {
               preg_match('/JIRA ticket (.*) has.*/', $value['content'], $m);
               $jira_issue_id = $m[1];
@@ -91,16 +93,16 @@ if ($messages) foreach ($messages->messages as $webhook) {
         error_log('Calling poll api trigger');
         call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, true, $jira_username, $pd_api_token);
       }
-      elseif ($verb == "resolve") {
-        error_log('Incident resolved...');
-        $note_verb = "closed";
-        $url = $base_url . $jira_issue_id . "/transitions";
-        $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
-        post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
-        // Call poll_pd_api with polling = false to stop polling
-        error_log('Calling poll api resolve');
-        call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, false, $jira_username, $pd_api_token);
-      }
+      // elseif ($verb == "resolve") {
+      //   error_log('Incident resolved...');
+      //   $note_verb = "closed";
+      //   $url = $base_url . $jira_issue_id . "/transitions";
+      //   $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
+      //   post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
+      //   // Call poll_pd_api with polling = false to stop polling
+      //   error_log('Calling poll api resolve');
+      //   call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, false, $jira_username, $pd_api_token);
+      // }
 
       break;
     default:
@@ -108,8 +110,8 @@ if ($messages) foreach ($messages->messages as $webhook) {
   }
 }
 
-function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, $polling, $jira_username, $pd_api_token) {
-  $data = array('polling'=>$polling,'pd_subdomain'=>$pd_subdomain,'incident_id'=>$incident_id,'base_url'=>$base_url,'jira_issue_id'=>$jira_issue_id,'jira_username'=>$jira_username,'pd_api_token'=>$pd_api_token,'jira_password'=>$jira_password);
+function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, $polling, $jira_username, $pd_api_token, $incident_number) {
+  $data = array('polling'=>$polling,'pd_subdomain'=>$pd_subdomain,'incident_id'=>$incident_id,'base_url'=>$base_url,'jira_issue_id'=>$jira_issue_id,'jira_username'=>$jira_username,'pd_api_token'=>$pd_api_token,'jira_password'=>$jira_password,'incident_number'=>$incident_number);
   $data_json = json_encode($data);
   // Get the current scheme and domain and append the poll_pd_api script
   $domain = $_SERVER['HTTP_HOST'];
