@@ -21,14 +21,16 @@ while ($polling) {
     break;
   }
   $unique_notes = dedupe_notes($notes_data, $jira_notes);
-  foreach ($unique_notes as $note) {
-    $jira_note_data = array('body'=>"$note");
-    $res = post_to_jira($jira_note_data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id);
-    if ($res == "ERROR") {
-      error_log("Stopping polling process...");
-      break;
+  if (count($unique_notes) > 0) {
+    foreach ($unique_notes as $note) {
+      $jira_note_data = array('body'=>"$note");
+      $res = post_to_jira($jira_note_data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id);
+      if ($res == "ERROR") {
+        error_log("Stopping polling process...");
+        break;
+      }
+      $jira_notes[] = $note;
     }
-    $jira_notes[] = $note;
   }
   usleep(10000000); // Wait 10 seconds
 }
