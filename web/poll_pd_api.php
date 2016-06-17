@@ -48,7 +48,7 @@ while ($polling) {
 
 // Returns all notes from PagerDuty incident
 function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
-  error_log('Running get incident log entries...');
+  error_log('Running get incident notes...');
   $url = "https://$pd_subdomain.pagerduty.com/api/v1/incidents/$incident_id/log_entries";
   $return = http_request($url, "", "GET", "token", "", $pd_api_token);
   if ($return['status_code'] == '200') {
@@ -59,7 +59,7 @@ function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
     return "ERROR";
   }
   $notes_data = array();
-  foreach ($response['notes'] as $value) {
+  foreach ($response['log_entries'] as $value) {
     $notes_data[] = $value;
   }
   return $notes_data;
