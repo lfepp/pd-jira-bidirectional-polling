@@ -13,6 +13,7 @@ $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
 $jira_password = $data->jira_password;
 $incident_number = $data->incident_number;
+$jira_transition_id = $data->jira_transition_id;
 
 while ($polling) {
   error_log('Polling...');
