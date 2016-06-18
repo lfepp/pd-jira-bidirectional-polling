@@ -137,6 +137,10 @@ function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id
 
 function post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token) {
   $data_json = json_encode($data);
+  error_log('Sending data to Jira: ' . $data_json);
+  error_log('Jira user: ' . $jira_username);
+  error_log('Jira password: ' . $jira_password);
+  error_log('URL: ' . $url);
   $return = http_request($url, $data_json, "POST", "basic", $jira_username, $jira_password);
   $status_code = $return['status_code'];
   $response = $return['response'];
