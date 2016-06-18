@@ -122,4 +122,19 @@ function http_request($url, $data_json, $method, $auth_type, $username, $token) 
   curl_close($ch);
   return array('status_code'=>"$status_code",'response'=>"$response");
 }
+
+// Vendor function (Lea Hayes - http://php.net/manual/fr/function.in-array.php#105251)
+function in_array_field($needle, $needle_field, $haystack, $strict = false) {
+    if ($strict) {
+        foreach ($haystack as $item)
+            if (isset($item->$needle_field) && $item->$needle_field === $needle)
+                return true;
+    }
+    else {
+        foreach ($haystack as $item)
+            if (isset($item->$needle_field) && $item->$needle_field == $needle)
+                return true;
+    }
+    return false;
+}
 ?>
