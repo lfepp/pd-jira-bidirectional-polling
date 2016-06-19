@@ -73,8 +73,10 @@ function dedupe_notes($notes_data, $jira_notes) {
   error_log('Running dedupe incident notes...');
   $unique_notes = array();
   foreach ($notes_data as $note) {
-    if (!in_array_field($note['id'], 'id', $jira_notes)) {
-      $unique_notes[] = $note;
+    if ($note['type'] == 'annotate' || $note['type'] == 'resolve') {
+      if (!in_array_field($note['id'], 'id', $jira_notes)) {
+        $unique_notes[] = $note;
+      }
     }
   }
   error_log('Unique notes: ' . count($unique_notes));
