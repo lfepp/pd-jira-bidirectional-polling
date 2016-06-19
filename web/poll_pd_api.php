@@ -76,6 +76,7 @@ function dedupe_notes($notes_data, $jira_notes) {
       $unique_notes[] = $note;
     }
   }
+  error_log('Unique notes: ' . $unique_notes);
   return $unique_notes;
 }
 
