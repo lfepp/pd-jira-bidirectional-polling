@@ -27,7 +27,8 @@ while ($polling) {
     foreach ($unique_notes as $note) {
       if ($note['type'] == 'annotate') {
         $jira_note_data = array('body'=>"$note");
-        $res = post_to_jira($jira_note_data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id);
+        $url = $base_url . $jira_issue_id . "/comment";
+        $res = post_to_jira($jira_note_data, $url, $jira_username, $jira_password, $jira_url);
         if ($res == "ERROR") {
           error_log("Stopping polling process...");
           break;
@@ -39,7 +40,7 @@ while ($polling) {
         $note_verb = "closed";
         $url = $base_url . $jira_issue_id . "/transitions";
         $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
-        post_to_jira($data, $url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
+        post_to_jira($data, $url, $jira_username, $jira_password, $jira_url);
         break;
       }
     }
@@ -78,11 +79,13 @@ function dedupe_notes($notes_data, $jira_notes) {
   return $unique_notes;
 }
 
-// Posts comments to Jira
-function post_to_jira($data, $base_url, $jira_username, $jira_password, $jira_url, $jira_issue_id) {
+// Posts comments/resolve ticket on Jira
+function post_to_jira($data, $url, $jira_username, $jira_password, $jira_url) {
   error_log('Running post to jira...');
-  $url = $base_url . $jira_issue_id . "/comment";
   $data_json = json_encode($data);
+  if ($note_verb == 'comment') {
+
+  }
   $return = http_request($url, $data_json, "POST", "basic", $jira_username, $jira_password);
   error_log('Jira username: ' . $jira_username);
   error_log('Jira password: ' . $jira_password);
