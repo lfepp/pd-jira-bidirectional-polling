@@ -12,6 +12,7 @@ $base_url = $data->base_url;
 $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
 $jira_password = $data->jira_password;
+error_log('Pass: ' . $jira_password);
 $incident_number = $data->incident_number;
 $jira_transition_id = $data->jira_transition_id;
 
@@ -45,7 +46,7 @@ while ($polling) {
       }
     }
   }
-  usleep(10000000); // Wait 10 seconds
+  usleep(20000000); // Wait 20 seconds
 }
 
 // Returns all notes from PagerDuty incident
@@ -76,7 +77,7 @@ function dedupe_notes($notes_data, $jira_notes) {
       $unique_notes[] = $note;
     }
   }
-  error_log('Unique notes: ' . $unique_notes);
+  error_log('Unique notes: ' . count($unique_notes));
   return $unique_notes;
 }
 

@@ -113,6 +113,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
 function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, $polling, $jira_username, $pd_api_token, $incident_number, $jira_transition_id) {
   $data = array('polling'=>$polling,'pd_subdomain'=>$pd_subdomain,'incident_id'=>$incident_id,'base_url'=>$base_url,'jira_issue_id'=>$jira_issue_id,'jira_username'=>$jira_username,'pd_api_token'=>$pd_api_token,'jira_password'=>$jira_password,'incident_number'=>$incident_number,'jira_transition_id'=>$jira_transition_id);
   $data_json = json_encode($data);
+  error_log('Pass before passing: ' . $data_json->jira_password);
   // Get the current scheme and domain and append the poll_pd_api script
   $domain = $_SERVER['HTTP_HOST'];
   $prefix = $_SERVER['HTTPS'] ? 'https://' : 'http://';
