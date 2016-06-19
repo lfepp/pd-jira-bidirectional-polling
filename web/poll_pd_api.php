@@ -46,7 +46,7 @@ while ($polling) {
       }
     }
   }
-  usleep(20000000); // Wait 20 seconds
+  usleep(5000000); // Wait 5 seconds
 }
 
 // Returns all notes from PagerDuty incident
