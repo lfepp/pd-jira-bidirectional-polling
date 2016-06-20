@@ -60,7 +60,6 @@ if ($messages) foreach ($messages->messages as $webhook) {
       if ($return['status_code'] == '200') {
         $response = json_decode($return['response'], true);
         if (array_key_exists("notes", $response)) {
-          $notes_data = array();
           foreach ($response['notes'] as $value) {
             error_log($value['content']);
             $startsWith = "JIRA ticket";
@@ -68,16 +67,10 @@ if ($messages) foreach ($messages->messages as $webhook) {
               break 2; //Skip it cause it would be a duplicate
             }
             //Extract the JIRA issue ID for incidents that did not originate in JIRA
-            // TODO remove once we're polling for resolve
-            // TODO remove $polling variable entirely
             elseif (substr($value['content'], 0, strlen($startsWith)) === $startsWith && $verb == "resolve") {
               preg_match('/JIRA ticket (.*) has.*/', $value['content'], $m);
               $jira_issue_id = $m[1];
-             }
-             else {
-               // Concat all the non-ack notes
-               $notes_data[] = $value['content'];
-             }
+            }
           }
         }
       }

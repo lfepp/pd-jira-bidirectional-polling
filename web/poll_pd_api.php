@@ -27,7 +27,7 @@ while ($polling) {
   if (count($unique_notes) > 0) {
     foreach ($unique_notes as $note) {
       if ($note['type'] == 'annotate') {
-        $jira_note_data = array('body'=>"$note");
+        $jira_note_data = array('body'=>"$note['channel']['summary']");
         $url = $base_url . $jira_issue_id . "/comment";
         $res = post_to_jira($jira_note_data, $url, $jira_username, $jira_password, $jira_url);
         if ($res == "ERROR") {
@@ -74,7 +74,7 @@ function dedupe_notes($notes_data, $jira_notes) {
   $unique_notes = array();
   foreach ($notes_data as $note) {
     if ($note['type'] == 'annotate' || $note['type'] == 'resolve') {
-      if (!in_array_field($note['id'], 'id', $jira_notes)) {
+      if (!in_array_field($note['id'], 'id', $jira_notes) && substr($note['channel']['summary'], 0, strlen("JIRA ticket") !== "JIRA ticket") {
         $unique_notes[] = $note;
       }
     }
