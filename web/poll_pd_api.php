@@ -32,7 +32,7 @@ while ($polling) {
         $res = post_to_jira($jira_note_data, $url, $jira_username, $jira_password, $jira_url);
         if ($res == "ERROR") {
           error_log("Stopping polling process...");
-          break;
+          break 2;
         }
         $jira_notes[] = $note;
       }
@@ -42,7 +42,7 @@ while ($polling) {
         $url = $base_url . $jira_issue_id . "/transitions";
         $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
         post_to_jira($data, $url, $jira_username, $jira_password, $jira_url);
-        break;
+        break 2;
       }
     }
   }
