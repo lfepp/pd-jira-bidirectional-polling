@@ -16,38 +16,40 @@ error_log('Pass: ' . $jira_password);
 $incident_number = $data->incident_number;
 $jira_transition_id = $data->jira_transition_id;
 
-while ($polling) {
-  error_log('Polling...');
-  $notes_data = get_incident_notes($pd_subdomain, $incident_id, $pd_api_token);
-  if ($notes_data == "ERROR") {
-    error_log("Stopping polling process...");
-    break;
-  }
-  $unique_notes = dedupe_notes($notes_data, $jira_notes);
-  if (count($unique_notes) > 0) {
-    foreach ($unique_notes as $note) {
-      if ($note['type'] == 'annotate') {
-        $note_content = $note['channel']['summary'];
-        $jira_note_data = array('body'=>"$note_content");
-        $url = $base_url . $jira_issue_id . "/comment";
-        $res = post_to_jira($jira_note_data, $url, $jira_username, $jira_password, $jira_url);
-        if ($res == "ERROR") {
-          error_log("Stopping polling process...");
+if ($data) {
+  while ($polling) {
+    error_log('Polling...');
+    $notes_data = get_incident_notes($pd_subdomain, $incident_id, $pd_api_token);
+    if ($notes_data == "ERROR") {
+      error_log("Stopping polling process...");
+      break;
+    }
+    $unique_notes = dedupe_notes($notes_data, $jira_notes);
+    if (count($unique_notes) > 0) {
+      foreach ($unique_notes as $note) {
+        if ($note['type'] == 'annotate') {
+          $note_content = $note['channel']['summary'];
+          $jira_note_data = array('body'=>"$note_content");
+          $url = $base_url . $jira_issue_id . "/comment";
+          $res = post_to_jira($jira_note_data, $url, $jira_username, $jira_password, $jira_url);
+          if ($res == "ERROR") {
+            error_log("Stopping polling process...");
+            break 2;
+          }
+          $jira_notes[] = $note;
+        }
+        elseif ($note['type'] == 'resolve') {
+          error_log('Incident resolved...');
+          $note_verb = "closed";
+          $url = $base_url . $jira_issue_id . "/transitions";
+          $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
+          post_to_jira($data, $url, $jira_username, $jira_password, $jira_url);
           break 2;
         }
-        $jira_notes[] = $note;
-      }
-      elseif ($note['type'] == 'resolve') {
-        error_log('Incident resolved...');
-        $note_verb = "closed";
-        $url = $base_url . $jira_issue_id . "/transitions";
-        $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
-        post_to_jira($data, $url, $jira_username, $jira_password, $jira_url);
-        break 2;
       }
     }
+    usleep(5000000); // Wait 5 seconds
   }
-  usleep(5000000); // Wait 5 seconds
 }
 
 // Returns all notes from PagerDuty incident
