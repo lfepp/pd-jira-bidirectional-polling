@@ -27,7 +27,8 @@ while ($polling) {
   if (count($unique_notes) > 0) {
     foreach ($unique_notes as $note) {
       if ($note['type'] == 'annotate') {
-        $jira_note_data = array('body'=>"$note['channel']['summary']");
+        $note_content = $note['channel']['summary'];
+        $jira_note_data = array('body'=>"$note_content");
         $url = $base_url . $jira_issue_id . "/comment";
         $res = post_to_jira($jira_note_data, $url, $jira_username, $jira_password, $jira_url);
         if ($res == "ERROR") {
