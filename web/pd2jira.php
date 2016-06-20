@@ -110,9 +110,7 @@ function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id
   $domain = $_SERVER['HTTP_HOST'];
   $prefix = $_SERVER['HTTPS'] ? 'https://' : 'http://';
   $relative = '/poll_pd_api.php';
-  error_log('prefix: ' . $prefix);
-  error_log('domain: ' . $domain);
-  error_log('relative: ' . $relative);
+  error_log('Poll api URL: ' . $prefix . $domain . $relative);
   $ch = curl_init();
   error_log('Curl initiated for poll api');
   curl_setopt($ch, CURLOPT_URL, $prefix.$domain.$relative);
