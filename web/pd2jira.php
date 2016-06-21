@@ -17,7 +17,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
   $webhook_type = $webhook->type;
 
   switch ($webhook_type) {
-    case "incident.trigger":
+    case "incident.trigger" || "incident.acknowledge":
       //Die if the lock file is in use or if it's a trigger from JIRA
       if(file_exists('lock.txt') && file_get_contents('lock.txt') > (time() - 5)) {
         error_log('Its dying due to the lock!');
@@ -75,10 +75,10 @@ if ($messages) foreach ($messages->messages as $webhook) {
         $note_verb = "created";
         $data = array('fields'=>array('project'=>array('key'=>"$jira_project"),'summary'=>"$summary",'description'=>"A new PagerDuty ticket as been created.  {$trigger_summary_data}. Please go to $ticket_url to view it.", 'issuetype'=>array('name'=>"$jira_issue_type")));
         post_to_jira($data, $base_url, $jira_username, $jira_password, $pd_subdomain, $incident_id, $note_verb, $jira_url, $pd_requester_id, $pd_api_token);
-        // Call poll_pd_api with polling = true to start polling
-        error_log('Calling poll api...');
-        call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, true, $jira_username, $jira_password, $pd_api_token, $incident_number, $jira_transition_id);
       }
+      // Call poll_pd_api with polling = true to start polling
+      error_log('Calling poll api...');
+      call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, true, $jira_username, $jira_password, $pd_api_token, $incident_number, $jira_transition_id);
 
       break;
     default:
@@ -87,6 +87,7 @@ if ($messages) foreach ($messages->messages as $webhook) {
 }
 
 function call_poll_pd_api($pd_subdomain, $incident_id, $base_url, $jira_issue_id, $polling, $jira_username, $jira_password, $pd_api_token, $incident_number, $jira_transition_id) {
+  error_log('Jira issue ID before passing: ' . $jira_issue_id);
   $data = array('polling'=>$polling,'pd_subdomain'=>$pd_subdomain,'incident_id'=>$incident_id,'base_url'=>$base_url,'jira_issue_id'=>$jira_issue_id,'jira_username'=>$jira_username,'pd_api_token'=>$pd_api_token,'jira_password'=>$jira_password,'incident_number'=>$incident_number,'jira_transition_id'=>$jira_transition_id);
   $data_json = json_encode($data);
   // Get the current scheme and domain and append the poll_pd_api script
