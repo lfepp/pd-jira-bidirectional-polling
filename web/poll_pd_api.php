@@ -77,6 +77,7 @@ function dedupe_notes($notes_data, $jira_notes) {
   foreach ($notes_data as $note) {
     if ($note['type'] == 'annotate' || $note['type'] == 'resolve') {
       if (!in_array_field($note['id'], 'id', $jira_notes) && substr($note['channel']['summary'], 0, strlen("JIRA ticket"))  !== "JIRA ticket") {
+        error_log('New unique note: ' . $note['channel']['summary']);
         $unique_notes[] = $note;
       }
     }

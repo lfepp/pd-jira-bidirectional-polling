@@ -18,7 +18,8 @@ if ($messages) foreach ($messages->messages as $webhook) {
   error_log('New webhook of type: ' . $webhook_type);
 
   switch ($webhook_type) {
-    case "incident.trigger" || "incident.acknowledge":
+    #case "incident.trigger" || "incident.assign":
+    case "incident.trigger":
       //Die if the lock file is in use or if it's a trigger from JIRA
       if(file_exists('lock.txt') && file_get_contents('lock.txt') > (time() - 5)) {
         error_log('Its dying due to the lock!');
