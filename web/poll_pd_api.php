@@ -12,7 +12,6 @@ $base_url = $data->base_url;
 $jira_issue_id = $data->jira_issue_id;
 $jira_username = $data->jira_username;
 $jira_password = $data->jira_password;
-error_log('Pass: ' . $jira_password);
 $incident_number = $data->incident_number;
 $jira_transition_id = $data->jira_transition_id;
 
@@ -40,7 +39,6 @@ if ($data) {
         }
         elseif ($note['type'] == 'resolve') {
           error_log('Incident resolved...');
-          $note_verb = "closed";
           $url = $base_url . $jira_issue_id . "/transitions";
           $data = array('update'=>array('comment'=>array(array('add'=>array('body'=>"PagerDuty incident #$incident_number has been resolved.")))),'transition'=>array('id'=>"$jira_transition_id"));
           post_to_jira($data, $url, $jira_username, $jira_password, $jira_url);
@@ -87,22 +85,20 @@ function dedupe_notes($notes_data, $jira_notes) {
 }
 
 // Posts comments/resolve ticket on Jira
-function post_to_jira($data, $url, $jira_username, $jira_password, $jira_url) {
+function post_to_jira($data, $url, $jira_username, $jira_password, $jira_url, $note_verb) {
   error_log('Running post to jira...');
   $data_json = json_encode($data);
-  if ($note_verb == 'comment') {
-
-  }
   $return = http_request($url, $data_json, "POST", "basic", $jira_username, $jira_password);
   error_log('Jira username: ' . $jira_username);
   error_log('Jira password: ' . $jira_password);
   $status_code = $return['status_code'];
   $response = $return['response'];
 
+  error_log('Jira status code: ' . $status_code);
   if ($status_code != '201' && $status_code != '204') {
     error_log('Could not add comment to Jira. Status code: ' . $status_code);
+    return "ERROR";
   }
-  return "ERROR";
 }
 
 // Make HTTP request to PagerDuty or Jira
@@ -124,12 +120,14 @@ function http_request($url, $data_json, $method, $auth_type, $username, $token) 
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
   }
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  error_log('Executing curl...');
   $response  = curl_exec($ch);
   $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
   if(curl_errno($ch)){
     error_log('Curl error: ' . curl_error($ch));
   }
   curl_close($ch);
+  error_log('Curl closed');
   return array('status_code'=>"$status_code",'response'=>"$response");
 }
 
