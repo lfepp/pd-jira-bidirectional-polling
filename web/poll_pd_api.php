@@ -24,6 +24,7 @@ if ($data) {
       break;
     }
     $unique_notes = dedupe_notes($notes_data, $jira_notes);
+    error_log('First note: ' . $unique_notes[0]['channel']['summary']);
     if (count($unique_notes) > 0) {
       foreach ($unique_notes as $note) {
         if ($note['type'] == 'annotate') {
