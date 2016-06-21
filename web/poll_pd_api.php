@@ -73,10 +73,13 @@ function get_incident_notes($pd_subdomain, $incident_id, $pd_api_token) {
 // De-duplicates notes with those already added to Jira
 function dedupe_notes($notes_data, $jira_notes) {
   error_log('Running dedupe incident notes...');
+  error_log('Jira notes: ' . count($jira_notes));
   $unique_notes = array();
   foreach ($notes_data as $note) {
     if ($note['type'] == 'annotate' || $note['type'] == 'resolve') {
+      error_log('Good type');
       if (!in_array_field($note['id'], 'id', $jira_notes) && substr($note['channel']['summary'], 0, strlen("JIRA ticket"))  !== "JIRA ticket") {
+        error_log('New unique note');
         $unique_notes[] = $note;
       }
     }
