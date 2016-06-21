@@ -15,6 +15,7 @@ $pd_api_token = getenv('PAGERDUTY_API_TOKEN');
 
 if ($messages) foreach ($messages->messages as $webhook) {
   $webhook_type = $webhook->type;
+  error_log('New webhook of type: ' . $webhook_type);
 
   switch ($webhook_type) {
     case "incident.trigger" || "incident.acknowledge":
