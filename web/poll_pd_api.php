@@ -30,6 +30,7 @@ if ($data) {
           $note_content = $note['channel']['summary'];
           $jira_note_data = array('body'=>"$note_content");
           $url = $base_url . $jira_issue_id . "/comment";
+          error_log('Jira URL: ' . $url);
           $res = post_to_jira($jira_note_data, $url, $jira_username, $jira_password, $jira_url);
           if ($res == "ERROR") {
             error_log("Stopping polling process...");
@@ -86,7 +87,6 @@ function dedupe_notes($notes_data, $jira_notes) {
 
 // Posts comments/resolve ticket on Jira
 function post_to_jira($data, $url, $jira_username, $jira_password, $jira_url) {
-  error_log('Running post to jira...');
   $data_json = json_encode($data);
   $return = http_request($url, $data_json, "POST", "basic", $jira_username, $jira_password);
   error_log('Jira URL: ' . $url);
