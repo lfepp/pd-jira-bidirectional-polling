@@ -85,12 +85,13 @@ function dedupe_notes($notes_data, $jira_notes) {
 }
 
 // Posts comments/resolve ticket on Jira
-function post_to_jira($data, $url, $jira_username, $jira_password, $jira_url, $note_verb) {
+function post_to_jira($data, $url, $jira_username, $jira_password, $jira_url) {
   error_log('Running post to jira...');
   $data_json = json_encode($data);
   $return = http_request($url, $data_json, "POST", "basic", $jira_username, $jira_password);
   error_log('Jira username: ' . $jira_username);
   error_log('Jira password: ' . $jira_password);
+  error_log('Jira URL: ' . $url);
   $status_code = $return['status_code'];
   $response = $return['response'];
 
